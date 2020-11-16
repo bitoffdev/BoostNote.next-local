@@ -29,6 +29,16 @@ import { rehypePosition } from '../../lib/markdown/rehypePosition'
 import styled from '../../shared/lib/styled'
 import rehypeCodeMirror from '../../shared/lib/codemirror/rehypeCodeMirror'
 import ExpandableImage from '../molecules/Image/ExpandableImage'
+import { useActiveStorageId } from '../../lib/routeParams'
+import { useRouter } from '../../lib/router'
+import { useDb } from '../../lib/db'
+import {
+  isNoteLinkId,
+  prependNoteIdPrefix,
+  removePrefixFromNoteLinks,
+} from '../../lib/db/utils'
+import { getNoteFullItemId } from '../../lib/nav'
+import { useToast } from '../../lib/toast'
 
 const schema = mergeDeepRight(gh, {
   attributes: {
@@ -70,12 +80,15 @@ const MarkdownPreviewer = ({
   attachmentMap = {},
   updateContent,
 }: MarkdownPreviewerProps) => {
+  const { replace } = useRouter()
   const [rendering, setRendering] = useState(false)
   const previousContentRef = useRef('')
   const previousThemeRef = useRef<string | undefined>('')
   const [renderedContent, setRenderedContent] = useState<React.ReactNode>([])
-
   const checkboxIndexRef = useRef<number>(0)
+  const { getNotePathname } = useDb()
+  const activeStorageId = useActiveStorageId()
+  const { pushMessage } = useToast()
 
   const remarkAdmonitionOptions = {
     tag: ':::',
@@ -137,6 +150,31 @@ const MarkdownPreviewer = ({
       },
     },
   }
+  const navigateToNote = useCallback(
+    (noteId) => {
+      if (!activeStorageId) {
+        pushMessage({
+          title: 'Invalid navigation!',
+          description: 'Cannot open note link without storage information.',
+        })
+      } else {
+        getNotePathname(activeStorageId, prependNoteIdPrefix(noteId)).then(
+          (pathname) => {
+            if (pathname) {
+              replace(getNoteFullItemId(activeStorageId, pathname, noteId))
+            } else {
+              pushMessage({
+                title: 'Note link invalid!',
+                description:
+                  'The note link you are trying to open is invalid or from another storage.',
+              })
+            }
+          }
+        )
+      }
+    },
+    [activeStorageId, pushMessage, getNotePathname, replace]
+  )
 
   const markdownProcessor = useMemo(() => {
     return unified()
@@ -156,9 +194,69 @@ const MarkdownPreviewer = ({
         ignoreMissing: true,
         theme: codeBlockTheme,
       })
+<<<<<<< HEAD
       .use(rehypeMermaid)
       .use(rehypeReact, rehypeReactConfig)
   }, [remarkAdmonitionOptions, codeBlockTheme, rehypeReactConfig])
+=======
+      .use(rehypeKatex)
+      .use(rehypeReact, {
+        createElement: React.createElement,
+        components: {
+          img: ({ src, ...props }: any) => {
+            if (src != null && !src.match('/')) {
+              const attachment = attachmentMap[src]
+              if (attachment != null) {
+                return <AttachmentImage attachment={attachment} {...props} />
+              }
+            }
+
+            return <img {...props} src={src} />
+          },
+          a: ({ href, children }: any) => {
+            return (
+              <a
+                href={href}
+                onClick={(event) => {
+                  event.preventDefault()
+                  if (href) {
+                    if (isNoteLinkId(href)) {
+                      navigateToNote(href)
+                    } else {
+                      openNew(href)
+                    }
+                  }
+                }}
+              >
+                {children}
+              </a>
+            )
+          },
+          input: (props: React.HTMLProps<HTMLInputElement>) => {
+            const { type, checked } = props
+
+            if (type !== 'checkbox') {
+              return <input {...props} />
+            }
+
+            return (
+              <MarkdownCheckbox
+                index={checkboxIndexRef.current++}
+                checked={checked}
+                updateContent={updateContent}
+              />
+            )
+          },
+          pre: CodeFence,
+        },
+      })
+  }, [
+    remarkAdmonitionOptions,
+    codeBlockTheme,
+    navigateToNote,
+    attachmentMap,
+    updateContent,
+  ])
 
   const renderContent = useCallback(async () => {
     const content = previousContentRef.current
@@ -166,7 +264,9 @@ const MarkdownPreviewer = ({
 
     console.time('render')
     checkboxIndexRef.current = 0
-    const result = await markdownProcessor.process(content)
+
+    const contentWithValidNoteLinks = removePrefixFromNoteLinks(content)
+    const result = await markdownProcessor.process(contentWithValidNoteLinks)
     console.timeEnd('render')
 
     setRendering(false)
@@ -200,7 +300,29 @@ const MarkdownPreviewer = ({
       .CodeMirror {
         height: inherit;
       }
+
       ${style}
+
+      a {
+        text-decoration: none;
+        cursor: pointer;
+        box-sizing: border-box;
+        color: ${({ theme }) => theme.primaryColor};
+        background-color: transparent;
+        opacity: 0.8;
+        &:hover {
+          background: ${({ theme }) => theme.secondaryButtonBackgroundColor};
+          opacity: 1.0;
+          outline: solid 4px ${({ theme }) =>
+            theme.secondaryButtonBackgroundColor};
+          outline-offset: 0;
+        }
+
+        &:visited {
+          color: ${({ theme }) => theme.secondaryButtonBackgroundColor};
+        }
+      }
+    }
     `
   }, [style])
 

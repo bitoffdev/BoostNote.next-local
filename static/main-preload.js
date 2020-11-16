@@ -192,6 +192,7 @@ const { parse } = require('url')
   function isDefaultProtocolClient(protocol) {
     return electron.remote.app.isDefaultProtocolClient(protocol)
   }
+
   function getWebContentsById(id) {
     return electron.remote.webContents.fromId(id)
   }
