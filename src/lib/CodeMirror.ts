@@ -19,7 +19,7 @@ import 'codemirror-abap'
 import { loadMode } from '../shared/lib/codemirror/util'
 
 // Custom addons
-import {initHyperlink} from './addons/hyperlink'
+import { initHyperlink } from './addons/hyperlink'
 
 const dispatchModeLoad = debounce(() => {
   window.dispatchEvent(new CustomEvent('codemirror-mode-load'))
