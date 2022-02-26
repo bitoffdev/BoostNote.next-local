@@ -38,7 +38,7 @@ import {
   removePrefixFromNoteLinks,
 } from '../../lib/db/utils'
 import { getNoteFullItemId } from '../../lib/nav'
-import { useToast } from '../../lib/toast'
+import { useToast } from '../../shared/lib/stores/toast'
 
 const schema = mergeDeepRight(gh, {
   attributes: {
