@@ -17,6 +17,7 @@ import 'codemirror/keymap/emacs'
 import 'codemirror/keymap/vim'
 import 'codemirror-abap'
 import { loadMode } from '../shared/lib/codemirror/util'
+import debounce from 'lodash/debounce'
 
 // Custom addons
 import { initHyperlink } from './addons/hyperlink'

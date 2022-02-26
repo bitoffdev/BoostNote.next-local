@@ -18,26 +18,6 @@ import {
 import { useGeneralStatus } from '../lib/generalStatus'
 import { getNoteFullItemId } from '../lib/nav'
 import { useBoostNoteProtocol } from '../lib/protocol'
-import {
-  useBoostHub,
-  getBoostHubTeamIconUrl,
-  getLegacySessionCookie,
-  getDesktopAccessTokenFromSessionKey,
-  flushLegacySessionCookie,
-  boostHubBaseUrl,
-} from '../lib/boosthub'
-import {
-  boostHubTeamCreateEventEmitter,
-  BoostHubTeamCreateEvent,
-  BoostHubTeamUpdateEvent,
-  boostHubTeamUpdateEventEmitter,
-  BoostHubTeamDeleteEvent,
-  boostHubTeamDeleteEventEmitter,
-  boostHubAccountDeleteEventEmitter,
-  boostHubToggleSettingsEventEmitter,
-  boostHubLoginRequestEventEmitter,
-  boostHubCreateLocalSpaceEventEmitter,
-} from '../lib/events'
 import { useRouteParams } from '../lib/routeParams'
 import { useCreateWorkspaceModal } from '../lib/createWorkspaceModal'
 import CreateWorkspaceModal from './organisms/CreateWorkspaceModal'
@@ -85,11 +65,8 @@ const App = () => {
     setPreferences,
   } = usePreferences()
   const { navigate: navigateToStorage } = useStorageRouter()
-  const { messageBox } = useDialog()
   const { pushMessage } = useToast()
-  const { fetchDesktopGlobalData } = useBoostHub()
   const routeParams = useRouteParams()
-  const { navigate: navigateToStorage } = useStorageRouter()
   const activeStorageId = useActiveStorageId()
 
   useEffectOnce(() => {
@@ -161,9 +138,6 @@ const App = () => {
       removeIpcListener('note:navigate', noteLinkNavigateEventHandler)
     }
   }, [activeStorageId, getNotePathname, pushMessage, replace])
-
-  const boostHubTeamsShowPageIsActive =
-    routeParams.name === 'boosthub.teams.show'
 
   useEffect(() => {
     const preferencesIpcEventHandler = () => {

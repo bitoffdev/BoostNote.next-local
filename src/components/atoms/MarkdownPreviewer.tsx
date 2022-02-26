@@ -194,11 +194,8 @@ const MarkdownPreviewer = ({
         ignoreMissing: true,
         theme: codeBlockTheme,
       })
-<<<<<<< HEAD
       .use(rehypeMermaid)
-      .use(rehypeReact, rehypeReactConfig)
-  }, [remarkAdmonitionOptions, codeBlockTheme, rehypeReactConfig])
-=======
+      // .use(rehypeReact, rehypeReactConfig)
       .use(rehypeKatex)
       .use(rehypeReact, {
         createElement: React.createElement,
@@ -253,6 +250,7 @@ const MarkdownPreviewer = ({
   }, [
     remarkAdmonitionOptions,
     codeBlockTheme,
+    rehypeReactConfig,
     navigateToNote,
     attachmentMap,
     updateContent,
